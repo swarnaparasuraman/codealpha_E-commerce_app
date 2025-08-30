@@ -1,0 +1,418 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ product.name }} - E-Commerce Store{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Breadcrumb -->
+    <nav class="flex mb-8" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center space-x-1 md:space-x-3">
+            <li class="inline-flex items-center">
+                <a href="{% url 'store:product_list' %}" class="text-gray-700 hover:text-blue-600">
+                    <i class="fas fa-home mr-2"></i>Home
+                </a>
+            </li>
+            <li>
+                <div class="flex items-center">
+                    <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+                    <a href="{{ product.category.get_absolute_url }}" class="text-gray-700 hover:text-blue-600">
+                        {{ product.category.name }}
+                    </a>
+                </div>
+            </li>
+            <li aria-current="page">
+                <div class="flex items-center">
+                    <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+                    <span class="text-gray-500">{{ product.name }}</span>
+                </div>
+            </li>
+        </ol>
+    </nav>
+    
+    <!-- Product Details -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-12">
+        <!-- Product Images -->
+        <div class="space-y-4">
+            <!-- Main Image -->
+            <div class="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                {% if product.image %}
+                    <img id="main-image" src="{{ product.image.url }}" alt="{{ product.name }}" 
+                         class="w-full h-full object-cover">
+                {% else %}
+                    <div class="w-full h-full flex items-center justify-center">
+                        <i class="fas fa-image text-gray-400 text-6xl"></i>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Thumbnail Images -->
+            {% if product.additional_images.all %}
+                <div class="grid grid-cols-4 gap-2">
+                    <div class="aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer border-2 border-blue-500">
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}" 
+                             class="w-full h-full object-cover thumbnail-image"
+                             onclick="changeMainImage('{{ product.image.url }}')">
+                    </div>
+                    {% for image in product.additional_images.all %}
+                        <div class="aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer border-2 border-transparent hover:border-blue-500 transition-colors">
+                            <img src="{{ image.image.url }}" alt="{{ image.alt_text|default:product.name }}" 
+                                 class="w-full h-full object-cover thumbnail-image"
+                                 onclick="changeMainImage('{{ image.image.url }}')">
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Product Information -->
+        <div class="space-y-6">
+            <!-- Product Title and Category -->
+            <div>
+                <div class="text-sm text-gray-500 uppercase tracking-wide mb-2">
+                    {{ product.category.name }}
+                </div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-4">{{ product.name }}</h1>
+                
+                <!-- Featured Badge -->
+                {% if product.is_featured %}
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                        <i class="fas fa-star mr-1"></i>Featured Product
+                    </span>
+                {% endif %}
+            </div>
+            
+            <!-- Price -->
+            <div class="text-4xl font-bold text-blue-600">
+                ${{ product.price }}
+            </div>
+            
+            <!-- Stock Status -->
+            <div class="flex items-center space-x-2">
+                {% if product.is_in_stock %}
+                    <div class="flex items-center text-green-600">
+                        <i class="fas fa-check-circle mr-2"></i>
+                        <span class="font-medium">In Stock</span>
+                    </div>
+                    {% if product.stock <= 5 %}
+                        <span class="text-orange-500 text-sm">
+                            (Only {{ product.stock }} left!)
+                        </span>
+                    {% else %}
+                        <span class="text-gray-500 text-sm">
+                            ({{ product.stock }} available)
+                        </span>
+                    {% endif %}
+                {% else %}
+                    <div class="flex items-center text-red-600">
+                        <i class="fas fa-times-circle mr-2"></i>
+                        <span class="font-medium">Out of Stock</span>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Description -->
+            <div class="prose prose-gray max-w-none">
+                <h3 class="text-lg font-semibold text-gray-900 mb-3">Description</h3>
+                <p class="text-gray-700 leading-relaxed">{{ product.description }}</p>
+            </div>
+            
+            <!-- Add to Cart Section -->
+            {% if product.is_in_stock %}
+                <div class="space-y-4">
+                    <!-- Quantity Selector -->
+                    <div class="flex items-center space-x-4">
+                        <label for="quantity" class="text-sm font-medium text-gray-700">Quantity:</label>
+                        <div class="flex items-center border border-gray-300 rounded-md">
+                            <button type="button" onclick="decreaseQuantity()" 
+                                    class="px-3 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <input type="number" id="quantity" value="1" min="1" max="{{ product.stock }}" 
+                                   class="w-16 px-3 py-2 text-center border-0 focus:outline-none">
+                            <button type="button" onclick="increaseQuantity()" 
+                                    class="px-3 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Add to Cart Button -->
+                    <button onclick="addToCart()" 
+                            class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition duration-200 font-medium text-lg">
+                        <i class="fas fa-cart-plus mr-2"></i>Add to Cart
+                    </button>
+                </div>
+            {% else %}
+                <div class="bg-gray-100 border border-gray-300 rounded-lg p-4 text-center">
+                    <p class="text-gray-600 font-medium">This product is currently out of stock</p>
+                    <p class="text-sm text-gray-500 mt-1">Check back later or browse similar products</p>
+                </div>
+            {% endif %}
+            
+            <!-- Product Features -->
+            <div class="border-t border-gray-200 pt-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Product Features</h3>
+                <ul class="space-y-2 text-gray-700">
+                    <li class="flex items-center">
+                        <i class="fas fa-shipping-fast text-green-500 mr-3"></i>
+                        Free shipping on orders over $50
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-undo text-blue-500 mr-3"></i>
+                        30-day return policy
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-shield-alt text-purple-500 mr-3"></i>
+                        1-year warranty included
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-headset text-orange-500 mr-3"></i>
+                        24/7 customer support
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Related Products -->
+    {% if related_products %}
+        <div class="border-t border-gray-200 pt-12">
+            <h2 class="text-2xl font-bold text-gray-900 mb-8">Related Products</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {% for related_product in related_products %}
+                    <div class="bg-white rounded-lg shadow-sm hover:shadow-lg transition-shadow duration-300 overflow-hidden group">
+                        <!-- Product Image -->
+                        <div class="relative overflow-hidden">
+                            <a href="{{ related_product.get_absolute_url }}">
+                                {% if related_product.image %}
+                                    <img src="{{ related_product.image.url }}" alt="{{ related_product.name }}" 
+                                         class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300">
+                                {% else %}
+                                    <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
+                                        <i class="fas fa-image text-gray-400 text-3xl"></i>
+                                    </div>
+                                {% endif %}
+                            </a>
+                            
+                            {% if related_product.is_featured %}
+                                <div class="absolute top-2 left-2 bg-yellow-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
+                                    Featured
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Product Info -->
+                        <div class="p-4">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
+                                <a href="{{ related_product.get_absolute_url }}" class="hover:text-blue-600 transition duration-200">
+                                    {{ related_product.name }}
+                                </a>
+                            </h3>
+                            
+                            <div class="flex items-center justify-between">
+                                <div class="text-xl font-bold text-blue-600">
+                                    ${{ related_product.price }}
+                                </div>
+                                
+                                {% if related_product.is_in_stock %}
+                                    <button onclick="addToCartRelated({{ related_product.id }})" 
+                                            class="bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 transition duration-200 text-sm">
+                                        <i class="fas fa-cart-plus"></i>
+                                    </button>
+                                {% else %}
+                                    <span class="text-red-500 text-sm font-medium">Out of Stock</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Toast Container -->
+<div id="toast-container" class="fixed top-20 right-4 z-50 space-y-2"></div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    
+    .thumbnail-image {
+        transition: all 0.2s ease;
+    }
+    
+    .thumbnail-image:hover {
+        transform: scale(1.05);
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Change main image
+    function changeMainImage(imageUrl) {
+        document.getElementById('main-image').src = imageUrl;
+        
+        // Update thumbnail borders
+        document.querySelectorAll('.thumbnail-image').forEach(img => {
+            img.parentElement.classList.remove('border-blue-500');
+            img.parentElement.classList.add('border-transparent');
+        });
+        
+        // Add border to clicked thumbnail
+        event.target.parentElement.classList.add('border-blue-500');
+        event.target.parentElement.classList.remove('border-transparent');
+    }
+    
+    // Quantity controls
+    function increaseQuantity() {
+        const quantityInput = document.getElementById('quantity');
+        const currentValue = parseInt(quantityInput.value);
+        const maxValue = parseInt(quantityInput.max);
+        
+        if (currentValue < maxValue) {
+            quantityInput.value = currentValue + 1;
+        }
+    }
+    
+    function decreaseQuantity() {
+        const quantityInput = document.getElementById('quantity');
+        const currentValue = parseInt(quantityInput.value);
+        
+        if (currentValue > 1) {
+            quantityInput.value = currentValue - 1;
+        }
+    }
+    
+    // Add to cart functionality
+    function addToCart() {
+        {% if user.is_authenticated %}
+            const quantity = document.getElementById('quantity').value;
+            
+            fetch('{% url "store:add_to_cart" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    'product_id': {{ product.id }},
+                    'quantity': parseInt(quantity)
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    updateCartCount(data.cart_items_count);
+                } else {
+                    showToast(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showToast('An error occurred', 'error');
+            });
+        {% else %}
+            showToast('Please log in to add items to cart', 'warning');
+            setTimeout(() => {
+                window.location.href = '{% url "accounts:login" %}';
+            }, 2000);
+        {% endif %}
+    }
+    
+    // Add related product to cart
+    function addToCartRelated(productId) {
+        {% if user.is_authenticated %}
+            fetch('{% url "store:add_to_cart" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    'product_id': productId,
+                    'quantity': 1
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    updateCartCount(data.cart_items_count);
+                } else {
+                    showToast(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showToast('An error occurred', 'error');
+            });
+        {% else %}
+            showToast('Please log in to add items to cart', 'warning');
+            setTimeout(() => {
+                window.location.href = '{% url "accounts:login" %}';
+            }, 2000);
+        {% endif %}
+    }
+    
+    // Show toast notification
+    function showToast(message, type) {
+        const toastContainer = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        
+        const bgColor = type === 'success' ? 'bg-green-500' : 
+                       type === 'error' ? 'bg-red-500' : 
+                       type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500';
+        
+        toast.className = `${bgColor} text-white px-6 py-3 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300`;
+        toast.innerHTML = `
+            <div class="flex items-center">
+                <span>${message}</span>
+                <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-white hover:text-gray-200">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+        
+        toastContainer.appendChild(toast);
+        
+        // Animate in
+        setTimeout(() => {
+            toast.classList.remove('translate-x-full');
+        }, 100);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            toast.classList.add('translate-x-full');
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
+        }, 5000);
+    }
+    
+    // Update cart count in navigation
+    function updateCartCount(count) {
+        const cartLinks = document.querySelectorAll('a[href*="cart"]');
+        cartLinks.forEach(link => {
+            const badge = link.querySelector('.bg-red-500');
+            if (badge) {
+                badge.textContent = count;
+            } else if (count > 0) {
+                const icon = link.querySelector('i');
+                if (icon) {
+                    const newBadge = document.createElement('span');
+                    newBadge.className = 'absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center';
+                    newBadge.textContent = count;
+                    link.appendChild(newBadge);
+                }
+            }
+        });
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}E-Commerce Store{% endblock %}</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <style>
+        .toast {
+            transition: all 0.3s ease-in-out;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .toast.hide {
+            opacity: 0;
+            transform: translateY(-100%);
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex-shrink-0">
+                    <a href="{% url 'store:product_list' %}" class="text-2xl font-bold text-blue-600 hover:text-blue-700">
+                        <i class="fas fa-store mr-2"></i>E-Store
+                    </a>
+                </div>
+                
+                <!-- Search Bar (Desktop) -->
+                <div class="hidden md:flex flex-1 max-w-lg mx-8">
+                    <form method="GET" action="{% url 'store:product_list' %}" class="w-full">
+                        <div class="relative">
+                            <input type="text" name="search" 
+                                   placeholder="Search products..." 
+                                   value="{{ search_query|default:'' }}"
+                                   class="w-full px-4 py-2 pl-10 pr-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-search text-gray-400"></i>
+                            </div>
+                            <button type="submit" class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                <i class="fas fa-arrow-right text-gray-400 hover:text-blue-500"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Navigation Links -->
+                <div class="hidden md:flex items-center space-x-6">
+                    <a href="{% url 'store:product_list' %}" class="text-gray-700 hover:text-blue-600 transition duration-200">
+                        <i class="fas fa-home mr-1"></i>Home
+                    </a>
+                    
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'store:cart' %}" class="relative text-gray-700 hover:text-blue-600 transition duration-200">
+                            <i class="fas fa-shopping-cart mr-1"></i>Cart
+                            {% if cart_items_count > 0 %}
+                                <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                                    {{ cart_items_count }}
+                                </span>
+                            {% endif %}
+                        </a>
+                        
+                        <div class="relative group">
+                            <button class="text-gray-700 hover:text-blue-600 transition duration-200 flex items-center">
+                                <i class="fas fa-user mr-1"></i>{{ user.first_name|default:user.username }}
+                                <i class="fas fa-chevron-down ml-1 text-xs"></i>
+                            </button>
+                            <div class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                                <a href="{% url 'accounts:profile' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-user-circle mr-2"></i>Profile
+                                </a>
+                                <a href="{% url 'accounts:order_history' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-history mr-2"></i>Order History
+                                </a>
+                                <hr class="my-1">
+                                <a href="{% url 'accounts:logout' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                                </a>
+                            </div>
+                        </div>
+                    {% else %}
+                        <a href="{% url 'accounts:login' %}" class="text-gray-700 hover:text-blue-600 transition duration-200">
+                            <i class="fas fa-sign-in-alt mr-1"></i>Login
+                        </a>
+                        <a href="{% url 'accounts:register' %}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-200">
+                            <i class="fas fa-user-plus mr-1"></i>Register
+                        </a>
+                    {% endif %}
+                </div>
+                
+                <!-- Mobile menu button -->
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="text-gray-700 hover:text-blue-600 focus:outline-none">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile menu -->
+        <div id="mobile-menu" class="md:hidden hidden bg-white border-t border-gray-200">
+            <div class="px-4 py-2">
+                <!-- Mobile Search -->
+                <form method="GET" action="{% url 'store:product_list' %}" class="mb-4">
+                    <div class="relative">
+                        <input type="text" name="search" 
+                               placeholder="Search products..." 
+                               value="{{ search_query|default:'' }}"
+                               class="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-search text-gray-400"></i>
+                        </div>
+                    </div>
+                </form>
+                
+                <!-- Mobile Navigation Links -->
+                <div class="space-y-2">
+                    <a href="{% url 'store:product_list' %}" class="block py-2 text-gray-700 hover:text-blue-600">
+                        <i class="fas fa-home mr-2"></i>Home
+                    </a>
+                    
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'store:cart' %}" class="block py-2 text-gray-700 hover:text-blue-600">
+                            <i class="fas fa-shopping-cart mr-2"></i>Cart
+                            {% if cart_items_count > 0 %}({{ cart_items_count }}){% endif %}
+                        </a>
+                        <a href="{% url 'accounts:profile' %}" class="block py-2 text-gray-700 hover:text-blue-600">
+                            <i class="fas fa-user-circle mr-2"></i>Profile
+                        </a>
+                        <a href="{% url 'accounts:order_history' %}" class="block py-2 text-gray-700 hover:text-blue-600">
+                            <i class="fas fa-history mr-2"></i>Order History
+                        </a>
+                        <a href="{% url 'accounts:logout' %}" class="block py-2 text-gray-700 hover:text-blue-600">
+                            <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                        </a>
+                    {% else %}
+                        <a href="{% url 'accounts:login' %}" class="block py-2 text-gray-700 hover:text-blue-600">
+                            <i class="fas fa-sign-in-alt mr-2"></i>Login
+                        </a>
+                        <a href="{% url 'accounts:register' %}" class="block py-2 text-gray-700 hover:text-blue-600">
+                            <i class="fas fa-user-plus mr-2"></i>Register
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Messages -->
+    {% if messages %}
+        <div id="messages-container" class="fixed top-20 right-4 z-50 space-y-2">
+            {% for message in messages %}
+                <div class="toast hide max-w-sm bg-white border-l-4 {% if message.tags == 'error' %}border-red-500{% elif message.tags == 'warning' %}border-yellow-500{% elif message.tags == 'success' %}border-green-500{% else %}border-blue-500{% endif %} p-4 shadow-lg rounded-r-lg">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            {% if message.tags == 'error' %}
+                                <i class="fas fa-exclamation-circle text-red-500"></i>
+                            {% elif message.tags == 'warning' %}
+                                <i class="fas fa-exclamation-triangle text-yellow-500"></i>
+                            {% elif message.tags == 'success' %}
+                                <i class="fas fa-check-circle text-green-500"></i>
+                            {% else %}
+                                <i class="fas fa-info-circle text-blue-500"></i>
+                            {% endif %}
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-gray-700">{{ message }}</p>
+                        </div>
+                        <div class="ml-auto pl-3">
+                            <button onclick="this.parentElement.parentElement.parentElement.remove()" class="text-gray-400 hover:text-gray-600">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    
+    <!-- Main Content -->
+    <main class="flex-grow">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">E-Store</h3>
+                    <p class="text-gray-300 text-sm">Your one-stop shop for quality products at great prices.</p>
+                </div>
+                <div>
+                    <h4 class="text-md font-semibold mb-4">Quick Links</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="{% url 'store:product_list' %}" class="text-gray-300 hover:text-white">Products</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white">About Us</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-md font-semibold mb-4">Customer Service</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="text-gray-300 hover:text-white">Help Center</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white">Returns</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white">Shipping Info</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-md font-semibold mb-4">Follow Us</h4>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-300 hover:text-white"><i class="fab fa-facebook"></i></a>
+                        <a href="#" class="text-gray-300 hover:text-white"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-gray-300 hover:text-white"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-sm text-gray-300">
+                <p>&copy; 2024 E-Store. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- JavaScript -->
+    <script>
+        // Mobile menu toggle
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenu.classList.toggle('hidden');
+        });
+        
+        // Show toast messages
+        document.addEventListener('DOMContentLoaded', function() {
+            const toasts = document.querySelectorAll('.toast');
+            toasts.forEach(function(toast, index) {
+                setTimeout(function() {
+                    toast.classList.remove('hide');
+                    toast.classList.add('show');
+                }, index * 200);
+                
+                setTimeout(function() {
+                    toast.classList.remove('show');
+                    toast.classList.add('hide');
+                    setTimeout(function() {
+                        toast.remove();
+                    }, 300);
+                }, 5000 + (index * 200));
+            });
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

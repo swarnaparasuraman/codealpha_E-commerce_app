@@ -1,0 +1,339 @@
+{% extends 'base.html' %}
+
+{% block title %}Checkout - E-Commerce Store{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Page Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">Checkout</h1>
+        <p class="text-gray-600 mt-2">Complete your order</p>
+    </div>
+    
+    <!-- Checkout Steps -->
+    <div class="mb-8">
+        <div class="flex items-center justify-center space-x-4">
+            <div class="flex items-center">
+                <div class="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-medium">
+                    <i class="fas fa-check"></i>
+                </div>
+                <span class="ml-2 text-sm font-medium text-green-600">Cart</span>
+            </div>
+            <div class="w-16 h-1 bg-green-500"></div>
+            <div class="flex items-center">
+                <div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-medium">2</div>
+                <span class="ml-2 text-sm font-medium text-blue-600">Checkout</span>
+            </div>
+            <div class="w-16 h-1 bg-gray-300"></div>
+            <div class="flex items-center">
+                <div class="w-8 h-8 bg-gray-300 text-gray-600 rounded-full flex items-center justify-center text-sm font-medium">3</div>
+                <span class="ml-2 text-sm font-medium text-gray-500">Confirmation</span>
+            </div>
+        </div>
+    </div>
+    
+    <form method="POST" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {% csrf_token %}
+        
+        <!-- Checkout Form -->
+        <div class="lg:col-span-2 space-y-8">
+            <!-- Billing Information -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-6">
+                    <i class="fas fa-user mr-2 text-blue-500"></i>Billing Information
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="first_name" class="block text-sm font-medium text-gray-700 mb-2">First Name *</label>
+                        <input type="text" id="first_name" name="first_name" required 
+                               value="{{ user.first_name }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label for="last_name" class="block text-sm font-medium text-gray-700 mb-2">Last Name *</label>
+                        <input type="text" id="last_name" name="last_name" required 
+                               value="{{ user.last_name }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
+                        <input type="email" id="email" name="email" required 
+                               value="{{ user.email }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
+                        <input type="tel" id="phone" name="phone" required 
+                               value="{{ user.profile.phone|default:'' }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Shipping Address -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-6">
+                    <i class="fas fa-shipping-fast mr-2 text-blue-500"></i>Shipping Address
+                </h2>
+                
+                <div class="space-y-6">
+                    <div>
+                        <label for="address_line_1" class="block text-sm font-medium text-gray-700 mb-2">Address Line 1 *</label>
+                        <input type="text" id="address_line_1" name="address_line_1" required 
+                               value="{{ user.profile.address_line_1|default:'' }}"
+                               placeholder="Street address, P.O. box, company name, c/o"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label for="address_line_2" class="block text-sm font-medium text-gray-700 mb-2">Address Line 2</label>
+                        <input type="text" id="address_line_2" name="address_line_2" 
+                               value="{{ user.profile.address_line_2|default:'' }}"
+                               placeholder="Apartment, suite, unit, building, floor, etc."
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <label for="city" class="block text-sm font-medium text-gray-700 mb-2">City *</label>
+                            <input type="text" id="city" name="city" required 
+                                   value="{{ user.profile.city|default:'' }}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        
+                        <div>
+                            <label for="state" class="block text-sm font-medium text-gray-700 mb-2">State/Province *</label>
+                            <input type="text" id="state" name="state" required 
+                                   value="{{ user.profile.state|default:'' }}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        
+                        <div>
+                            <label for="postal_code" class="block text-sm font-medium text-gray-700 mb-2">Postal Code *</label>
+                            <input type="text" id="postal_code" name="postal_code" required 
+                                   value="{{ user.profile.postal_code|default:'' }}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="country" class="block text-sm font-medium text-gray-700 mb-2">Country *</label>
+                        <select id="country" name="country" required 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Select Country</option>
+                            <option value="US" {% if user.profile.country == 'US' %}selected{% endif %}>United States</option>
+                            <option value="CA" {% if user.profile.country == 'CA' %}selected{% endif %}>Canada</option>
+                            <option value="UK" {% if user.profile.country == 'UK' %}selected{% endif %}>United Kingdom</option>
+                            <option value="AU" {% if user.profile.country == 'AU' %}selected{% endif %}>Australia</option>
+                            <option value="DE" {% if user.profile.country == 'DE' %}selected{% endif %}>Germany</option>
+                            <option value="FR" {% if user.profile.country == 'FR' %}selected{% endif %}>France</option>
+                            <option value="JP" {% if user.profile.country == 'JP' %}selected{% endif %}>Japan</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Payment Method -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-6">
+                    <i class="fas fa-credit-card mr-2 text-blue-500"></i>Payment Method
+                </h2>
+                
+                <div class="space-y-4">
+                    <div class="border border-gray-300 rounded-lg p-4">
+                        <div class="flex items-center">
+                            <input type="radio" id="credit_card" name="payment_method" value="credit_card" checked 
+                                   class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300">
+                            <label for="credit_card" class="ml-3 block text-sm font-medium text-gray-700">
+                                Credit/Debit Card
+                            </label>
+                        </div>
+                        
+                        <div class="mt-4 space-y-4">
+                            <div>
+                                <label for="card_number" class="block text-sm font-medium text-gray-700 mb-2">Card Number</label>
+                                <input type="text" id="card_number" name="card_number" 
+                                       placeholder="1234 5678 9012 3456"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="expiry_date" class="block text-sm font-medium text-gray-700 mb-2">Expiry Date</label>
+                                    <input type="text" id="expiry_date" name="expiry_date" 
+                                           placeholder="MM/YY"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                
+                                <div>
+                                    <label for="cvv" class="block text-sm font-medium text-gray-700 mb-2">CVV</label>
+                                    <input type="text" id="cvv" name="cvv" 
+                                           placeholder="123"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="border border-gray-300 rounded-lg p-4">
+                        <div class="flex items-center">
+                            <input type="radio" id="paypal" name="payment_method" value="paypal" 
+                                   class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300">
+                            <label for="paypal" class="ml-3 block text-sm font-medium text-gray-700">
+                                PayPal
+                            </label>
+                        </div>
+                        <p class="mt-2 text-sm text-gray-500">You will be redirected to PayPal to complete your payment.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Order Summary -->
+        <div class="lg:col-span-1">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sticky top-24">
+                <h2 class="text-xl font-semibold text-gray-900 mb-6">Order Summary</h2>
+                
+                <!-- Order Items -->
+                <div class="space-y-4 mb-6">
+                    {% for item in cart_items %}
+                        <div class="flex items-center space-x-3">
+                            <div class="flex-shrink-0">
+                                {% if item.product.image %}
+                                    <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" 
+                                         class="w-12 h-12 object-cover rounded-lg">
+                                {% else %}
+                                    <div class="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-image text-gray-400 text-sm"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="flex-grow">
+                                <h4 class="text-sm font-medium text-gray-900">{{ item.product.name }}</h4>
+                                <p class="text-sm text-gray-500">Qty: {{ item.quantity }}</p>
+                            </div>
+                            
+                            <div class="text-sm font-medium text-gray-900">
+                                ${{ item.total_price }}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                
+                <hr class="mb-6">
+                
+                <!-- Order Totals -->
+                <div class="space-y-3">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Subtotal</span>
+                        <span class="font-medium">${{ cart.total_price }}</span>
+                    </div>
+                    
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Shipping</span>
+                        <span class="font-medium">
+                            {% if cart.total_price >= 50 %}
+                                <span class="text-green-600">Free</span>
+                            {% else %}
+                                $9.99
+                            {% endif %}
+                        </span>
+                    </div>
+                    
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Tax</span>
+                        <span class="font-medium">${{ cart.total_price|floatformat:2|add:"0"|mul:"0.08"|floatformat:2 }}</span>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="flex justify-between text-lg font-bold">
+                        <span>Total</span>
+                        <span>
+                            {% load custom_filters %}
+                            {% if cart.total_price >= 50 %}
+                                ${{ cart.total_price|add_tax|floatformat:2 }}
+                            {% else %}
+                                ${{ cart.total_price|add_shipping_and_tax|floatformat:2 }}
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Place Order Button -->
+                <button type="submit" 
+                        class="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition duration-200 font-medium text-lg mt-6">
+                    <i class="fas fa-lock mr-2"></i>Place Order
+                </button>
+                
+                <!-- Security Notice -->
+                <div class="mt-4 text-center">
+                    <p class="text-xs text-gray-500">
+                        <i class="fas fa-shield-alt mr-1"></i>
+                        Your payment information is secure and encrypted
+                    </p>
+                </div>
+                
+                <!-- Return to Cart -->
+                <div class="mt-4">
+                    <a href="{% url 'store:cart' %}" 
+                       class="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition duration-200 font-medium text-center block">
+                        <i class="fas fa-arrow-left mr-2"></i>Back to Cart
+                    </a>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Form validation
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const requiredFields = document.querySelectorAll('input[required], select[required]');
+        let isValid = true;
+        
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                field.classList.add('border-red-500');
+                isValid = false;
+            } else {
+                field.classList.remove('border-red-500');
+            }
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+            alert('Please fill in all required fields.');
+        }
+    });
+    
+    // Card number formatting
+    document.getElementById('card_number').addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\s/g, '').replace(/[^0-9]/gi, '');
+        let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+        e.target.value = formattedValue;
+    });
+    
+    // Expiry date formatting
+    document.getElementById('expiry_date').addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length >= 2) {
+            value = value.substring(0, 2) + '/' + value.substring(2, 4);
+        }
+        e.target.value = value;
+    });
+    
+    // CVV validation
+    document.getElementById('cvv').addEventListener('input', function(e) {
+        e.target.value = e.target.value.replace(/[^0-9]/g, '').substring(0, 4);
+    });
+</script>
+{% endblock %}
